@@ -27,7 +27,7 @@ namespace WeatherAPI.Presentation.Middleware
             context.Response.ContentType = "application/json";
             HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
             string result = string.Empty;
-
+              
             switch (exception)
             {
                 case BadRequestException badRequestException:
@@ -49,6 +49,7 @@ namespace WeatherAPI.Presentation.Middleware
                     Data = null,
                     Code = $"{(int)statusCode}",
                 });
+            context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
             return context.Response.WriteAsync(result);
         }
