@@ -20,6 +20,11 @@ builder.Services.AddDbContextPool<WeatherAPIDbContext>(options =>
     builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.ConfigureIdentityServices(builder.Configuration);
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddControllers()
+        .AddNewtonsoftJson(options =>
+        {
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+        });
 builder.Services.AddCors(o =>
 {
     o.AddPolicy("CorsPolicy",
@@ -29,6 +34,12 @@ builder.Services.AddCors(o =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dataContext = scope.ServiceProvider.GetRequiredService<WeatherAPIDbContext>();
+    dataContext.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,13 +1,17 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System.Text;
 using WeatherAPI.Domain;
 using WeatherAPI.Domain.Contracts.Services.Identity;
 using WeatherAPI.Domain.DTOs;
+using WeatherAPI.Domain.Enums;
 using WeatherAPI.Domain.Exceptions;
 using WeatherAPI.Domain.RequestPayloads;
 using WeatherAPI.Domain.Response.BaseResponse;
 using WeatherAPI.Domain.Security.JWT;
+using UnauthorizedAccessException = WeatherAPI.Domain.Exceptions.UnauthorizedAccessException;
 
 namespace WeatherAPI.Data.Services.Identity
 {
@@ -43,7 +47,7 @@ namespace WeatherAPI.Data.Services.Identity
             {
                 if (loggedInUser.Id != user.Id)
                 {
-                    throw new Exception($"You're not authorized to view this resource");
+                    throw new UnauthorizedAccessException($"You're not authorized to view this resource");
                 }
             }
             await _signInManager.SignOutAsync();
@@ -52,7 +56,7 @@ namespace WeatherAPI.Data.Services.Identity
 
             if (!result.Succeeded)
             {
-                throw new BadRequestException($"Incorrect username or password");
+                throw new InternalServerErrorException($"Something went wrong");
             }
 
             var getToken = await _tokenGenerator.GenerateToken(user);
@@ -73,6 +77,33 @@ namespace WeatherAPI.Data.Services.Identity
             };
 
             return dataToSend;
+        }
+
+        public async Task<ServiceResponse<RegistrationDTO>> CreateAccount(RegistrationRequest request)
+        {
+            var checkUser = await _userManager.Users.Where(x => x.Email == request.Email || x.PhoneNumber == request.PhoneNumber).FirstOrDefaultAsync();
+            if (checkUser != null)
+            {
+                throw new BadRequestException("Account with either email or phone number already exists. Please proceed to login");
+            }
+
+            // map request to AppUser
+            AppUser newUser = _mapper.Map<AppUser>(request);
+            newUser.UserName = request.Email;
+
+            // save newUser to db
+            var result = await _userManager.CreateAsync(newUser, request.Password);
+            if (!result.Succeeded)
+            {
+                throw new InternalServerErrorException(string.Join($"{Environment.NewLine}", result.Errors));
+            }
+            await _userManager.AddToRoleAsync(newUser, Roles.Administrator.ToString());
+
+            var dataToReturn = _mapper.Map<RegistrationDTO>(request);
+            return new ServiceResponse<RegistrationDTO>
+            {
+                Data = dataToReturn
+            };
         }
     }
 }

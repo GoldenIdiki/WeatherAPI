@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WeatherAPI.Data;
 
@@ -11,9 +12,10 @@ using WeatherAPI.Data;
 namespace WeatherAPI.Data.Migrations
 {
     [DbContext(typeof(WeatherAPIDbContext))]
-    partial class WeatherAPIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230128145616_RolesInsertion")]
+    partial class RolesInsertion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,7 +54,7 @@ namespace WeatherAPI.Data.Migrations
                         new
                         {
                             Id = "cac43a6e-f7bb-4448-baaf-1add460ccbbe",
-                            ConcurrencyStamp = "c3d7333f-96e1-4143-910b-927e18f08657",
+                            ConcurrencyStamp = "c5948e1a-99c1-4f69-a113-5cbb5a3302bc",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -182,14 +184,6 @@ namespace WeatherAPI.Data.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");

@@ -21,12 +21,32 @@ namespace WeatherAPI.Presentation.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<ServiceResponse<AuthDTO>>> Login(AuthRequest request)
         {
-            if (ModelState.IsValid)
+            try
             {
+                request.Validate();
                 var result = await _authenticationService.Login(request);
                 return Ok(result);
             }
-            else { return BadRequest(); }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpPost("register")]
+        public async Task<ActionResult<ServiceResponse<RegistrationDTO>>> CreateAccount([FromBody] RegistrationRequest request)
+        {
+            try
+            {
+                request.Validate();
+                var result = await _authenticationService.CreateAccount(request);
+                return CreatedAtAction(nameof(CreateAccount), result);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            
         }
     }
 }

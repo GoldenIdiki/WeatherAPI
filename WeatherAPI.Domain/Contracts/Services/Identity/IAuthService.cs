@@ -12,5 +12,6 @@ namespace WeatherAPI.Domain.Contracts.Services.Identity
     public interface IAuthService
     {
         Task<ServiceResponse<AuthDTO>> Login(AuthRequest request);
+        Task<ServiceResponse<RegistrationDTO>> CreateAccount(RegistrationRequest request);
     }
 }
