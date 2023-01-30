@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.PlatformAbstractions;
 using System.Reflection;
 using WeatherAPI.Data;
 using WeatherAPI.Domain.Security.Swagger;
+using WeatherAPI.Infrastructure;
 using WeatherAPI.Presentation.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,14 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 ConfigureSwagger.AddSwaggerDoc(builder.Services);
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-builder.Services.AddDbContextPool<WeatherAPIDbContext>(options => 
-    options.UseSqlServer(
-    builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.ConfigureDataServices(builder.Configuration);
 builder.Services.ConfigureIdentityServices(builder.Configuration);
+builder.Services.ConfigureInfrastructureServices(builder.Configuration);
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddControllers()
         .AddNewtonsoftJson(options =>
@@ -31,6 +29,11 @@ builder.Services.AddCors(o =>
         builder => builder.AllowAnyOrigin()
         .AllowAnyMethod()
         .AllowAnyHeader());
+});
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.IncludeXmlComments(GetXmlCommentPath());
 });
 
 var app = builder.Build();
@@ -66,3 +69,10 @@ app.UseCors("CorsPolicy");
 app.MapControllers();
 
 app.Run();
+
+static string GetXmlCommentPath()
+{
+    var basePath = PlatformServices.Default.Application.ApplicationBasePath;
+    var fileName = typeof(Program).GetTypeInfo().Assembly.GetName().Name + ".xml";
+    return Path.Combine(basePath, fileName);
+}

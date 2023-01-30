@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Net;
 using WeatherAPI.Domain.Exceptions;
+using UnauthorizedAccessException = WeatherAPI.Domain.Exceptions.UnauthorizedAccessException;
 
 namespace WeatherAPI.Presentation.Middleware
 {
@@ -38,6 +39,9 @@ namespace WeatherAPI.Presentation.Middleware
                     break;
                 case InternalServerErrorException serverError:
                     statusCode = HttpStatusCode.InternalServerError;
+                    break;
+                case UnauthorizedAccessException unauthorizedAccessException:
+                    statusCode = HttpStatusCode.Unauthorized;
                     break;
                 default:
                     break;
