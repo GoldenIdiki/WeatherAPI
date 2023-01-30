@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 using WeatherAPI.Domain;
 using WeatherAPI.Domain.Contracts.Services.Identity;
 using WeatherAPI.Domain.DTOs;
@@ -36,7 +35,7 @@ namespace WeatherAPI.Data.Services.Identity
         public async Task<ServiceResponse<AuthDTO>> Login(AuthRequest request)
         {
             var user = await _userManager.FindByNameAsync(request.UserName);
-
+            
             if (user == null)
             {
                 throw new BadRequestException($"User with {request.UserName} does not exist");

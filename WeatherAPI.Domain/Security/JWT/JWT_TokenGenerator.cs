@@ -40,6 +40,8 @@ namespace WeatherAPI.Domain.Security.JWT
                 .Union(roleClaims)
                 ),
                 Expires = DateTime.UtcNow.AddHours(6),
+                Issuer = _optionsMonitor.Issuer,
+                Audience = _optionsMonitor.Audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);

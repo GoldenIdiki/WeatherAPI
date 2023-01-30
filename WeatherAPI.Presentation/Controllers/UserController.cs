@@ -1,4 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using WeatherAPI.Domain.Contracts.Services.Weather;
+using WeatherAPI.Domain.DTOs;
+using WeatherAPI.Domain.RequestPayloads;
+using WeatherAPI.Domain.Response.BaseResponse;
+using WeatherAPI.Presentation.Middleware;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,36 +15,40 @@ namespace WeatherAPI.Presentation.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        // GET: api/<UserController>
-        [HttpGet]
-        public IEnumerable<string> GetWeatherDetails()
+        private readonly IWeatherService _weatherService;
+
+        public UserController(IWeatherService weatherService)
         {
-            return new string[] { "value1", "value2" };
+            _weatherService = weatherService;
         }
 
-        // GET api/<UserController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        /// <summary>
+        /// Logged in users can request weather details of a particular location.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns code="200">A weatherDTO which contains the weather details of the location within a period of time</returns>
+        /// <response code="200">Returns 200 and the weather details</response>
+        /// <response code="400">Returns 400 if the input is invalid</response>
+        /// <response code="401">Returns 401 if the user is not authorized to access this resource</response>
+        /// <response code="500">Returns 500 if a system error occurred while getting the weather details</response>
+        [Authorize(Roles = "Administrator")]
+        [HttpPost("weather-details")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ServiceResponse<WeatherDTO>))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetails<object>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetails<object>))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetails<object>))]
+        public Task<ServiceResponse<WeatherDTO>> GetWeatherDetails(WeatherRequest request)
         {
-            return "value";
-        }
-
-        // POST api/<UserController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<UserController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<UserController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            try
+            {
+                request.Validate();
+                var result = _weatherService.GetWeatherDetails(request);
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }
